@@ -1,0 +1,13 @@
+name: fridge
+channels:
+- defaults
+- pytorch
+dependencies:
+- numpy
+- matplotlib
+- pip=19.0
+- scikit-learn
+- scikit-image
+- python=3.7.3
+- pytorch=1.7
+- requests
