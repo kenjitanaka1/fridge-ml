@@ -3,6 +3,7 @@ import json
 import os
 import requests
 
+import numpy as np
 import skimage.io as io
 from torch.utils.data.dataset import Dataset
 import torch
@@ -25,10 +26,11 @@ def get_data(root_dir, data_json):
 
 class FridgeVoterDataset(Dataset):
 
-    def __init__(self, root_dir, data_json):
+    def __init__(self, root_dir, data_json, transform=None):
         self.data_list = get_data(root_dir, data_json)
         self.root_dir = root_dir
-
+        self.transform = transform
+    
     def __len__(self):
         return len(self.data_list)
 
@@ -43,8 +45,30 @@ class FridgeVoterDataset(Dataset):
         img_path = os.path.join(self.root_dir, img_name)
         image = io.imread(img_path)
 
-        return {'image': image, 'vote' : answer}
+        if self.transform:
+            image = self.transform(image)
+
+        return [image, answer]
+
+    def vote_to_class(names):
+        return (np.array(names) == 'Trump').astype(int)
+
+    def class_to_vote(classes: int) -> str:
+        classes[classes == 0] = 'Biden'
+        classes[classes == 1] = 'Trump'
+        return classes
 
 if __name__ == '__main__':
     dataset = FridgeVoterDataset('dataset', 'data.json')
-    dataset[0]
+    max_size = np.zeros(3)
+
+    for i in range(len(dataset)):
+        dshape = dataset[i][0].shape
+        if dshape[0] > max_size[0]:
+            max_size[0] = dshape[0]
+        if dshape[1] > max_size[1]:
+            max_size[1] = dshape[1]
+        if dshape[2] > max_size[2]:
+            max_size[2] = dshape[2]
+
+    print(f'Images should be scaled to {max_size}')
