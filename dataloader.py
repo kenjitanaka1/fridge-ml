@@ -43,7 +43,7 @@ class FridgeVoterDataset(Dataset):
         answer = entry['answer']
 
         img_path = os.path.join(self.root_dir, img_name)
-        image = io.imread(img_path)
+        image = io.imread(img_path).transpose(2, 0, 1).astype(np.float32)
 
         if self.transform:
             image = self.transform(image)
@@ -51,7 +51,7 @@ class FridgeVoterDataset(Dataset):
         return [image, answer]
 
     def vote_to_class(names):
-        return (np.array(names) == 'Trump').astype(int)
+        return torch.tensor((np.array(names) == 'Trump').astype(np.int64))
 
     def class_to_vote(classes: int) -> str:
         classes[classes == 0] = 'Biden'
